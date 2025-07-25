@@ -1,0 +1,48 @@
+# eureka-server/.github/workflows/deploy.yml
+
+name: CI/CD - Deploy Eureka Server
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push eureka-server
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: minkeon44883/eureka-server:latest # ⭐️ 이미지 이름 변경
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            # === eureka-server 배포 (포트: 8761) ===
+            docker pull minkeon44883/eureka-server:latest
+            docker stop eureka-server || true
+            docker rm eureka-server || true
+            docker run -d --name eureka-server -p 8761:8761 \
+              -e SPRING_PROFILES_ACTIVE=docker \
+              minkeon44883/eureka-server:latest
