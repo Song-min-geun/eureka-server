@@ -16,9 +16,6 @@ spring:
     config:
       # 로컬 컴퓨터에서 실행 중인 Config 서버를 찾아갑니다.
       uri: http://localhost:8888
-      username: Song-min-geun     # Config 서버 접근 계정
-      password: ${GIT_TOKEN}
-
 
 ---
 # --- 'docker' 프로필: EC2 서버에 배포 시 ---
@@ -30,5 +27,3 @@ spring:
     config:
       # Docker 내부 네트워크에 있는 'config-server'라는 이름의 컨테이너를 찾아갑니다.
       uri: http://config-server:8888
-      username: Song-min-geun     # Config 서버 접근 계정
-      password: ${GIT_TOKEN}
